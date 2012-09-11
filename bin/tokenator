@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+var tokenator = require('../server.js');
+
+var args = process.argv.slice(2);
+tokenator( args );
+console.log('Tokenator started');

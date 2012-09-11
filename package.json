@@ -1,0 +1,23 @@
+{
+  "name": "Tokenator",
+  "version": "0.0.1",
+  "description": "Token generator and verifier machine. Used for timing http requests and retransmits.",
+  "private": true,
+  "scripts": {
+    "start": "node tokenator",
+    "test": "mocha test/*.js"
+  },
+  "bin" : { "tokenator": "./bin/tokenator"},
+  "dependencies": {
+    "express": "3.0.0rc3",
+    "ejs": "*",
+    "forever": "*",
+    "redis": "*",
+    "moment": "*"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "should":"*" ,
+    "zombie": "*"
+  }
+}

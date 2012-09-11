@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    <table>
+    	<tr>
+    		<th>Token</th>
+    		<th>Device</th>
+    		<th>Device Time</th>
+    		<th>Start Time</th>
+    		<th>Validity</th>
+    		<th>Status</th>
+    		<th>Ip</th>
+    	</tr>
+    <%for(var token in tokens){%>
+    	<tr>
+    		<td><%=tokens[token].token%></td>
+    		<td><%=tokens[token].device%></td>
+    		<td><%=tokens[token].deviceTime%></td>
+    		<td><%=tokens[token].startTime%></td>
+    		<td><%=tokens[token].validity%></td>
+    		<td><%=tokens[token].status%></td>
+    		<td><%=tokens[token].ip%></td>
+    	</tr>
+    <%}%>
+</table>
+  </body>
+</html>
