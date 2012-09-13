@@ -2,6 +2,9 @@ var should = require('should');
 var assert = require('assert');
 var Browser = require('zombie');
 
+var time = '';
+var token = '';
+
 /*describe('token', function() {
      describe('with  arguments', function() {
          it('returns an empty object', function() {
@@ -41,7 +44,7 @@ describe('Tokenator Tests::', function() {
 		});
 	});*/
 
-	/*describe('getToken Failed', function(){
+	describe('getToken Failed', function(){
 		it('Returns a valid token', function(done){
 			var getUrl = 'tokenator/timedtoken/get_token?';
 			//time_validity=ValidityTime&device_id=DeviceIdentification&device_time=TimeOnDevice
@@ -57,7 +60,7 @@ describe('Tokenator Tests::', function() {
 			  done();
 			});
 		});
-	});*/
+	});
 
 	describe('checkToken OK', function(){
 		it('Returns a valid status', function(done){

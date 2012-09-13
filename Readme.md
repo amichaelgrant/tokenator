@@ -66,6 +66,10 @@ Responses:
 ToDo:
 =====
 Allow json and xml requests and responses.
+-proper logging for tracking
+-http token viewer
+-config files for dynamic configuration of ports and paths
+-watch token logic
 
 
 Send me a mail if you run in to problems: a.hunter.hunts@gmail.com
