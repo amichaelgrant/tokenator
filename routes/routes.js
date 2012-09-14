@@ -25,7 +25,13 @@ var STATUS = {
 		TOKEN_EXPIRED: 		'1',	//Expired timed token
 		RETRANSMIT_OCCURED: '2',	//Http retransmission occuring
 		TOKEN_NON_EXISTENT: '3',	//non existent token for given device
-		UNKNOWN_CONDITION: '4',
+		UNKNOWN_CONDITION:  '4',
+	},
+	NON_TIMED:{
+		VALID:   	'10',
+		USED: 	    '20',
+		RETRANSMIT: '30',
+		UNKNOWN: 	'40',
 	},
 	BAD:'ERROR'				//General http request failure
 };
@@ -34,6 +40,13 @@ var CONFIG = {
 	DEFAULT_TOKEN_VALIDITY: 60*60*1000, //this is one(1) hour in milli-sec
 };
 
+//timed or non timed tokens
+var TOKEN_TYPE = {
+	TIMED: 0,
+	NON_TIMED: 1,
+};
+
+
 //general is date function//
 var isDate = function(val) {
 	if(!val) return false;
@@ -41,6 +54,10 @@ var isDate = function(val) {
     console.log( 'Val of -->' + d.toString() );
     var ret = !isNaN(d.valueOf());
     return ret;
+}
+
+var md5 = function( val ){
+	return crypto.createHash('md5').update(val).digest("hex");
 }
 
 exports.routes = function( app ){
@@ -81,15 +98,28 @@ exports.routes = function( app ){
 
 			option.systemTime = new Date().getTime(); //milli-sec time
 			option.status = 0;	// new and unused token
-			console.log( option.startTime );
+			console.log( option.stackTime );
 			//Error checking for the fields
+			
 			//if validity is not specified set to default
 			//option.validity = option.validity || CONFIG.DEFAULT_TOKEN_VALIDITY;
-			console.log('validity -->' + option.validity );
-			if( !option.validity ) throw new Error('Validity time not specified!');
+			console.log('<---------validity -------->' + option.validity );
+			if( !option.validity ){
+				//this is going to be a non timed token
+				option.tokenType = TOKEN_TYPE.NON_TIMED;
+				console.info('token Type set');
+				//throw new Error('Validity time not specified!');
+			}else if( isNaN(option.validity) == true || parseInt(option.validity) < 0  ){
+				console.error('Invalid validity time or not a positive');
+				throw new Error('Invalid validity time or not a positive');
+				//throw new Error('validity time must be positive');
+			}else 
+				option.tokenType = TOKEN_TYPE.TIMED;
+			
+			
 			//if not a number
-			if( isNaN(option.validity) == true ) throw new Error('Invalid validity time');
-			if( option.validity < 0 ) throw new Error('validity time must be positive');
+			//if( isNaN(option.validity) == true ) throw new Error('Invalid validity time');
+			//if( option.validity < 0 ) throw new Error('validity time must be positive');
 			
 			//set device time to current time if not given
 			//option.deviceTime = option.deviceTime || new Date().getTime();
@@ -99,15 +129,7 @@ exports.routes = function( app ){
 			if(!option.device) throw new Error('Invalid Device Id: ');
 
 			//put the current device time in time pool//
-			option.timePool.push({item: option.deviceTime});
-
-			//Once all validation is passed//
-			//check for availability of token first before attempting to create a 
-			//new one
-
-
-			////////////////////////////////////////////////////
-			/////////////////////////////////////////////////////
+			option.timePool = md5(option.device + option.deviceTime);
 
 			//generating an MD5 with  some random variable parameters
 			//'' + time-in-milii-sec + something else
@@ -124,21 +146,32 @@ exports.routes = function( app ){
 			option.token = option.key = token;
 			console.log('<-- option --->');
 			console.dir(option);
-			//Now save the token and the other parameters in the blazing fast
-			
-			//Redis server
-			// app.client.HMSET(token, option, function(error, responseObject){
-			// 	if( error ){
-			// 		console.log('Get token error');
-			// 		throw error;
+
+
+			//Once all validation is passed//
+			//check for availability of token first before attempting to create a 
+			//new one
+			// app.DB.Token.findOneAndUpdate({device: option.device}, {
+			// 	//values goe here//
+			// 	key 	: token,
+			// 	token 	: token,
+
+			// }, {upsert:true}, function(err ,data){
+			// 	if(err || !data){
+			// 		console.error('Error occurred trying to test existence of token');
+			// 		//create new token
+			// 	}else{
+			// 		console.info('Device already exist updating token');
+
 			// 	}
-				
-			// 	console.log('Token generated..' + responseObject);
-			// 	console.dir(option);
-			// 	res.send(token);
-			// 	return;
 			// });
 
+			////////////////////////////////////////////////////
+			/////////////////////////////////////////////////////
+
+			
+			//Now save the token and the other parameters in the blazing fast
+			
 			option.save(function(error, opt){
 				if( error ){
 			 		console.log('Get token error');
@@ -227,24 +260,74 @@ exports.routes = function( app ){
 					//assert.ok(new_time < old_time || new_time > old_time, 'invalid');
 					
 					//check for retransmits//
-					if( tokenO.device == option.device 
-						//introduce pool time concept//
+					//have we already processed this timestamp?
+					var flag = false;
+					var tPool = tokenO.timePool.split('|');
+					console.log('tPool -->');
+					console.dir(tPool);
+					if( tPool.length > 0){
+						tPool.forEach( function(item){
+							console.log('item --> %s  md5 --> %s' , item.toString(), md5(option.device + option.deviceTime));
+							if(item.toString() == md5(option.device + option.deviceTime)) flag = true;
+						});
+					}
+
+					
+					///////////////////////////////////////////
+					//processing for the non timed tokens
+					//checking for presence of time_validity
+					//and processing accordingly
+					if( parseInt(tokenO.tokenType) == TOKEN_TYPE.NON_TIMED ){
+						console.info('<-- Processing non-timed tokens -->');
+						// CASE - 1 retransmit
+						if( flag == true && parseInt( tokenO.status ) == 1) 
+							res.send(STATUS.NON_TIMED.RETRANSMIT);
+						// CASE - 2 validity
+						else if( parseInt(tokenO.status) == 0){
+							//need to update the status/lock flag if used
+							app.DB.Token.findByIdAndUpdate(tokenO._id, {
+								status: 1,
+							}, function(error, uToken){
+								if(error){
+									console.error('Non-timed token status update error');
+									throw error;
+								}
+								res.send(STATUS.NON_TIMED.VALID);
+							});
+						}
+						// CASE - 3 invalidity/usedness
+						else if( parseInt(tokenO.status) == 1)
+							res.send(STATUS.NON_TIMED.USED);
+						// CASE - 4 unknown
+						else
+							res.send(STATUS.NON_TIMED.UNKNOWN );
+					}
+
+					//Timed tokens
+					//checking for retransmit//
+					else if( //tokenO.device == option.device 
 						//&& (Math.abs(old_time - new_time) == 0 ) //|| Math.abs( stack_time - new_time ) == 0
+						//&& 
+						( flag == true )
+						//&& parseInt(tokenO.status) == 1
+						){
 						
-						&& parseInt(tokenO.status) == 1){
 						console.log('Re-transmit occurred.');
 						res.send(STATUS.TIMED.RETRANSMIT_OCCURED);
 					}
 					//check  for validity//
 					//if the new time falls within the range then it is valid
-					else if( new_time >= old_time && new_time <= sum_val_old &&  parseInt(tokenO.status) == 0 ){
+					else if( new_time >= old_time 
+						&& new_time <= sum_val_old 
+						//&&  parseInt(tokenO.status) == 0 
+						){
 						console.log('Valid token found');
-						//once the token is valid flip the status flag//
+						//once the token is valid flip the status flag//					
 						app.DB.Token.findByIdAndUpdate(tokenO._id, 
 							{
 								status:1, 
 								stackTime: option.deviceTime,
-								timePool: option.deviceTime,
+								timePool:  tokenO.timePool + '|' + md5(option.device + option.deviceTime),
 							}, 
 							function(error, uToken){
 							if( error ){
@@ -252,11 +335,9 @@ exports.routes = function( app ){
 								console.dir(error);
 								throw error;
 							}
-
 							//else if no error occured//
 							console.info('Update went fine.');
 							console.dir(uToken);
-
 							res.send(STATUS.TIMED.TOKEN_VALID);
 						});
 						////////////////////////////////////////////////
@@ -266,7 +347,7 @@ exports.routes = function( app ){
 						console.log('Expired token encountered');
 						res.send(STATUS.TIMED.TOKEN_EXPIRED);
 					}
-					//other condition
+					//other condition - unknown
 					else{
 						console.log('Unknown condition encountered');
 						res.send(STATUS.TIMED.UNKNOWN_CONDITION);
@@ -276,101 +357,7 @@ exports.routes = function( app ){
 				}
 			});
 
-			// app.client.HGETALL(token, function(error, tokenObject){
-			// 	if(error){
-			// 		console.log('Token check error happened, redis returned error');
-			// 		throw error;
-			// 	}
-
-
-			// 	//If there was no error then start processing
-			// 	console.log('tokenObejct------------------------>');
-			// 	console.dir(tokenObject);
-			// 	//if token not found
-			// 	var status = STATUS.BAD;
-			// 	if(!tokenObject || tokenObject == null ){
-			// 		res.send(STATUS.TIMED.TOKEN_NON_EXISTENT); //non existent token for device
-			// 		//return;
-			// 	}else{
-			// 		//if Token Found
-					
-			// 		//c-retransmitted token
-			// 		//deviceId && deviceTime must already exist in db for a
-			// 		//retransmitt to occured
-					
-			// 		console.log( '\ntokenObject.deviceTime-->' + parseInt(tokenObject.deviceTime) );
-			// 		console.log( '\ntokenObject.validity-->' + parseInt(tokenObject.validity) );
-			// 		var vt = parseInt(tokenObject.validity) + parseInt(tokenObject.deviceTime);
-			// 		console.log( '\ntokenObject.validity + tokenObject.deviceTime-->' + vt);
-			// 		var diff = parseInt(vt) - parseInt(option.deviceTime);
-
-			// 		console.log( '\noption.deviceTime -->' + parseInt(option.deviceTime) );
-			// 		console.log( '\noption.deviceTime and (tokenObject.validity + tokenObject.deviceTime) Diff-->' + diff );
-
-			// 		//console.log( 'tkO.device --%s == opD.device --%s' , tokenObject.device, option.device );
-
-			// 		//testing for retransmitts
-			// 		if( tokenObject.device == option.device
-			// 			&& (parseInt(tokenObject.deviceTime) - parseInt(option.deviceTime) == 0)
-			// 			&& parseInt( tokenObject.status) == 1){
-						
-			// 			console.log('Retransmission occured');
-			// 			status = STATUS.TIMED.RETRANSMIT_OCCURED;
-			// 			//return;
-			// 		//valid tokens
-			// 		}else if(  
-			// 			( (parseInt(tokenObject.validity) + parseInt(tokenObject.deviceTime)) > parseInt(option.deviceTime))
-			// 			//checking lower bound of time
-			// 			&& ( parseInt(tokenObject.deviceTime) < parseInt(option.deviceTime) ) 
-
-			// 			//(parseInt(option.deviceTime) > parseInt(tokenObject.deviceTime)) 
-			// 			//&& ( parseInt(option.deviceTime) < (parseInt(tokenObject.deviceTime) + parseInt(tokenObject.validity)) )
-						
-			// 		){
-
-			// 			//a-validity is intact
-			// 			status = STATUS.TIMED.TOKEN_VALID;   //this is a valid token
-
-			// 			//update before sending result back to server so//
-			// 			//we are sure this has been used already//
-			// 			tokenObject.status = '1';
-			// 			console.log('before update-->');
-			// 			console.dir(tokenObject);
-			// 			app.client.HMSET(token, tokenObject, function(error, responseObject){
-			// 				if( error ){
-			// 					console.log('Update token error');
-			// 					throw error;
-			// 				}
-			// 				console.log('Update response object');
-			// 				console.dir(responseObject);
-			// 				console.dir(tokenObject);
-			// 				console.log('Update response object ends');
-
-			// 				//send status to client
-			// 				console.log( 'status -->' + status );
-			// 				res.send( status );//tokenObject );
-			// 			});
-			// 			//return;
-			// 		//b-expired token
-			// 		}else if( 
-			// 			(parseInt(tokenObject.validity) + parseInt(tokenObject.deviceTime)) <= parseInt(option.deviceTime) ||
-			// 			(parseInt(tokenObject.deviceTime)) >= parseInt(option.deviceTime) 
-			// 			){
-
-			// 			status = STATUS.TIMED.TOKEN_EXPIRED;
-			// 			//return;
-			// 		}else{
-			// 			console.log('Going back to agent caller with check response');
-			// 			status = STATUS.BAD;
-			// 		}
-			// 		//end of token found
-
-			// 		console.log( 'status -->' + status );
-			// 		res.send( status );//tokenObject );
-					
-			// 	}
-				
-			// });
+		
 	
 		}catch( error ){
 			console.log('Token check error.');

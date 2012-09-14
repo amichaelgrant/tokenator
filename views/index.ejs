@@ -6,24 +6,33 @@
   </head>
   <body>
     <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+    <p>Welcome to <%= title %> 
+        <a href="/tokenator.admin">Refresh</a> 
+        <a href="/tokenator.admin.purge">Purge</a>
+    </p>
     <table>
     	<tr>
+            <th>#</th>
     		<th>Token</th>
     		<th>Device</th>
-    		<th>Device Time</th>
-    		<th>Start Time</th>
-    		<th>Validity</th>
+    		<th>Device Time (ms)</th>
+    		<th>Stack Time (ms)</th>
+            <th>System Time (ms)</th>
+    		<th>Validity (ms)</th>
+            <th>Token Type</th>
     		<th>Status</th>
     		<th>Ip</th>
     	</tr>
     <%for(var token in tokens){%>
     	<tr>
+            <td><%=token%></td>
     		<td><%=tokens[token].token%></td>
     		<td><%=tokens[token].device%></td>
     		<td><%=tokens[token].deviceTime%></td>
-    		<td><%=tokens[token].startTime%></td>
+    		<td><%=tokens[token].stackTime%></td>
+            <td><%=new Date(tokens[token].systemTime).toGMTString()%></td>
     		<td><%=tokens[token].validity%></td>
+            <td><%if(tokens[token].tokenType == 0){%>Timed<%}else{%>Non Timed<%}%></td>
     		<td><%=tokens[token].status%></td>
     		<td><%=tokens[token].ip%></td>
     	</tr>

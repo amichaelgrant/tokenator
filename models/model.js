@@ -35,22 +35,23 @@ exports.model = function( app ){
 	 	console.info('Connection to mongodb established');
 	 	//service field definition
 	 	var tokenSchema = new mongoose.Schema({
-	 		key: String,
-	 		token: String,
-	 		validity: Number,
-	 		device: String,
-	 		deviceTime: Number,
-	 		status: Number,
-	 		tokenType: Number,
-	 		ip: String,
+	 		key: 		{type:String, default: ''},
+	 		token: 		{type:String, default: '',  index: true },
+	 		validity: 	{type:Number, default: 0},
+	 		device: 	{type:String, default: '' , index: true },
+	 		deviceTime: {type:Number, default: 0},
+	 		status: 	{type:Number, default: 0},
+	 		tokenType: 	{type:Number, default: 0},
+	 		ip: 		{type:String, default: ''},
 
-	 		timePool: [{item: Number}],
+	 		timePool: 	{type:String, default: ''},
 
-	 		stackTime: Number,
-	 		systemTime: Number,
+	 		stackTime: 	{type:Number, default: new Date().getTime()},
+	 		systemTime: {type:Number, default: new Date().getTime()},
 	 	});
 	 	app.DB.Token = db.model('Token', tokenSchema);
 	 	
+	 		
 	});
 
 }
