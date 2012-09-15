@@ -11,11 +11,12 @@ NodeJs framework - a non-blocking, asynchronous evented I/O based on googles v8 
 ----------------
 Get NodeJs from node.org and install for your platform ( follow the instructions for your platform).
 If you are using linux follow the following instructions or let the instruction provided by node.org override this one:
-1 - Download the source from node.org
-2 - issue the command 'cd <downloaded-source-directory>'
-3 - issue './configure' once in the source directory
-4 - issue 'make'
-5 - issue 'sudo make install'
+
+1. - Download the source from node.org
+2. - issue the command 'cd <downloaded-source-directory>'
+3. - issue './configure' once in the source directory
+4. - issue 'make'
+5. - issue 'sudo make install'
 You are done with nodejs.
 				  
 
@@ -46,12 +47,12 @@ Installation
 Clone the tokenator source from: https://github.com/amichaelgrant/tokenator.git like so:
 if using linux and you have git installed:
 
-1 - 'git clone https://github.com/amichaelgrant/tokenator.git'
-2 - 'cd <cloned-source-directory>'
-3 - 'forever start -a -p `pwd` -l forever.log -o log.log -e err.log tokenator.js'
+1. - 'git clone https://github.com/amichaelgrant/tokenator.git'
+2. - 'cd <cloned-source-directory>'
+3. - 'forever start -a -p `pwd` -l forever.log -o log.log -e err.log tokenator.js'
 	(ref: https://github.com/nodejitsu/forever.git)
-4 - To stop the tokenator issue 'forever stop tokenator.js'
-5 - check status and error logs by looking at log.log and err.log files respectively.
+4. - To stop the tokenator issue 'forever stop tokenator.js'
+5. - check status and error logs by looking at log.log and err.log files respectively.
 
 
 Usage
@@ -59,25 +60,27 @@ Usage
 To get a token:
 http://tokenator/timedtoken/get_token?time_validity=ValidityTime&device_id=DeviceIdentification&device_time=TimeOnDevice
 
-*If a non-timed token is to be created then the time_validity parameter in the request must be ignored. It must be noted accordingly that the generated token will not be checked against the time_validity then. * 
+***If a non-timed token is to be created then the time_validity parameter in the request must be ignored. 
+It must be noted accordingly that the generated token will not be checked against the time_validity then. *** 
+
 Responses:
 returns a valid token on success and 'ERROR' on failure
 
 To check a token:
 http:///tokenator/timedtoken/check_token?token=Token&device_id=DeviceId&device_time=TimeOnDevice
 Responses for timed tokens:
-0 - TOKEN_VALID
-1 - TOKEN_EXPIRED
-2 - RETRANSMIT_OCCURED
-3 - TOKEN_NON_EXISTENT
-4 - UNKNOWN CONDITION
-'ERROR' - BAD 
+* 0 - TOKEN_VALID
+* 1 - TOKEN_EXPIRED
+* 2 - RETRANSMIT_OCCURED
+* 3 - TOKEN_NON_EXISTENT
+* 4 - UNKNOWN CONDITION
+* 'ERROR' - BAD 
 
 Responses for tokens generated without the time_validity parameter 
-10 -	VALID   	
-20 -	USED 
-30 -	RETRANSMIT
-40 -	UNKNOWN
+* 10 -	VALID   	
+* 20 -	USED 
+* 30 -	RETRANSMIT
+* 40 -	UNKNOWN
 
 
 ToDo:
