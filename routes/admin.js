@@ -1,5 +1,19 @@
 exports.admin = function( app ){
 
+	//Usage info. page
+	app.get('/tokenator.usage', function(req, res){
+		try{
+			
+			res.render('usage.ejs',{
+			  title: 'Tokenator Usage',
+			});			
+		}catch(error){
+			console.error('Error spewing usage pages');
+			console.dir(error);
+			res.redirect('/tokenator.usage');
+		}
+	});
+
 	//Admin page of server//
 	app.get('/tokenator.admin/:page?', function(req, res){
 		try{
@@ -16,6 +30,7 @@ exports.admin = function( app ){
 					console.dir(error);
 					throw error;
 				}
+
 				if( collection ) tokens = collection;
 				res.render('index.ejs',{
 				  title: 'Tokenator Admininstration',

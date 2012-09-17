@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+        <a href="/tokenator.admin">Refresh</a> 
+        <a href="/tokenator.admin.purge">Purge</a>
+        <a href="/tokenator.usage">Usage</a>
+    </p>
+    
+
+    <p>
+        The Tokenator Machine is a token generator and verifier server that helps mitigate the problem 
+        http retransmits. Http retransmit may be a serious issue when developing financial systems that 
+        ride on http as their mode of transport, this has given room for the use of timed tokens for marking 
+        transactions and determinig whether a given transction at any given point in time is valid and deserves processing.
+    </p>
+
+    <h3>Dependencies/Pre-requisites</h3>
+    <p>
+        NodeJs framework - a non-blocking, asynchronous evented I/O based on googles v8 engine.
+        ----------------
+        Get NodeJs from node.org and install for your platform ( follow the instructions for your platform).
+        If you are using linux follow the following instructions or let the instruction provided by node.org override this one:
+        <ul>
+        1. - Download the source from node.org
+        2. - issue the command 'cd <downloaded-source-directory>'
+        3. - issue './configure' once in the source directory
+        4. - issue 'make'
+        5. - issue 'sudo make install'
+        </ul>
+        You are done with nodejs.
+    </p>          
+
+    <p>
+    <!-- <b>Redis Server </b>- a blazing fast key value pair database;
+    ------------
+    The process for installing Redis is pretty much the same as nodejs:
+    Issue this commands at the command prompt:
+
+    <pre>
+    $ wget http://redis.googlecode.com/files/redis-2.4.17.tar.gz
+    $ tar xzf redis-2.4.17.tar.gz
+    $ cd redis-2.4.17
+    $ make
+    </pre>
+    To start Redis server:
+    <pre>
+    $ src/redis-server
+    </pre>
+    ref: http://redis.io/download -->
+    </p>
+
+    <p>
+        <b>Mongo Server</b>
+        ------------
+        Support for redis server has been put on hold.
+        So mongodb is now supported.
+        Mongodb installation help can be found here:
+        http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
+
+        <h3>Installation</h3>
+        ==============
+        Clone the tokenator source from: https://github.com/amichaelgrant/tokenator.git like so:
+        if using linux and you have git installed:
+
+        <ul>
+        1. - 'git clone https://github.com/amichaelgrant/tokenator.git'
+        2. - 'cd <cloned-source-directory>'
+        3. - 'forever start -a -p `pwd` -l forever.log -o log.log -e err.log tokenator.js'
+            (ref: https://github.com/nodejitsu/forever.git)
+        4. - To stop the tokenator issue 'forever stop tokenator.js'
+        5. - check status and error logs by looking at log.log and err.log files respectively.
+        </ul>
+    </p>
+
+    <h3>Usage</h3>
+    
+<p>
+    <b>To get a token:</b>
+    http://tokenator/timedtoken/get_token?time_validity=ValidityTime&device_id=DeviceIdentification&device_time=TimeOnDevice
+
+    ***If a non-timed token is to be created then the time_validity parameter in the request must be ignored. 
+    It must be noted accordingly that the generated token will not be checked against the time_validity then. *** 
+
+    <b>Responses:</b>
+    returns a valid token on success and 'ERROR' on failure
+
+    <div>
+        <b>To check a token:</b>
+        http:///tokenator/timedtoken/check_token?token=Token&device_id=DeviceId&device_time=TimeOnDevice
+        Responses for timed tokens:
+        <ul>
+        * 0 - TOKEN_VALID
+        * 1 - TOKEN_EXPIRED
+        * 2 - RETRANSMIT_OCCURED
+        * 3 - TOKEN_NON_EXISTENT
+        * 4 - UNKNOWN CONDITION
+        * 'ERROR' - BAD 
+        </ul>
+    </div>
+
+    <div>
+        Responses for tokens generated without the time_validity parameter 
+        <ul>
+        * 10 -  VALID       
+        * 20 -  USED 
+        * 30 -  RETRANSMIT
+        * 40 -  UNKNOWN
+        </ul>
+        </p>
+    </div>
+
+    <h3>ToDo:</h3>
+    =====
+    <p>
+        Allow json and xml interfaces for requests and responses.
+    </p>
+</p>
+  </body>
+</html>
