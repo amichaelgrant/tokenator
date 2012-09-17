@@ -13,34 +13,35 @@
     
 
     <p>
-        The Tokenator Machine is a token generator and verifier server that helps mitigate the problem 
-        http retransmits. Http retransmit may be a serious issue when developing financial systems that 
-        ride on http as their mode of transport, this has given room for the use of timed tokens for marking 
-        transactions and determinig whether a given transction at any given point in time is valid and deserves processing.
+        The Tokenator Machine is a token generator and verifier server that helps mitigate    http retransmits. Http retransmit may be a serious issue when developing financial systems that 
+        ride on http as their mode of transport, this has given room for the use of tokens for marking 
+        transactions and determinig whether a given transaction at any given point in time is valid and deserves processing.
     </p>
 
     <h3>Dependencies/Pre-requisites</h3>
     <p>
-        NodeJs framework - a non-blocking, asynchronous evented I/O based on googles v8 engine.
-        ----------------
+        <b>NodeJs framework</b> - a non-blocking, asynchronous evented I/O based on googles v8 engine.
+        <br>
         Get NodeJs from node.org and install for your platform ( follow the instructions for your platform).
         If you are using linux follow the following instructions or let the instruction provided by node.org override this one:
+        <br>
         <ul>
-        1. - Download the source from node.org
-        2. - issue the command 'cd <downloaded-source-directory>'
-        3. - issue './configure' once in the source directory
-        4. - issue 'make'
-        5. - issue 'sudo make install'
+        <li>1. - Download the source from node.org</li> 
+        <li>2. - issue the command 'cd <downloaded-source-directory>'</li> 
+        <li>3. - issue './configure' once in the source directory</li> 
+        <li>4. - issue 'make'</li> 
+        <li>5. - issue 'sudo make install'</li> 
         </ul>
         You are done with nodejs.
     </p>          
 
     <p>
     <!-- <b>Redis Server </b>- a blazing fast key value pair database;
-    ------------
+    <br>
     The process for installing Redis is pretty much the same as nodejs:
     Issue this commands at the command prompt:
-
+    
+    <br>
     <pre>
     $ wget http://redis.googlecode.com/files/redis-2.4.17.tar.gz
     $ tar xzf redis-2.4.17.tar.gz
@@ -56,24 +57,24 @@
 
     <p>
         <b>Mongo Server</b>
-        ------------
+        <br>
         Support for redis server has been put on hold.
         So mongodb is now supported.
         Mongodb installation help can be found here:
         http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
 
         <h3>Installation</h3>
-        ==============
-        Clone the tokenator source from: https://github.com/amichaelgrant/tokenator.git like so:
-        if using linux and you have git installed:
+        <br>
+        Clone the tokenator source from: svn like so:
+        if using linux and you have svn installed:
 
         <ul>
-        1. - 'git clone https://github.com/amichaelgrant/tokenator.git'
-        2. - 'cd <cloned-source-directory>'
-        3. - 'forever start -a -p `pwd` -l forever.log -o log.log -e err.log tokenator.js'
+        <li>1. - 'svn co <tokenator-location-on-svn>'</li> 
+        <li>2. - 'cd <cloned-source-directory>'
+        <li>3. - 'forever start -a -p `pwd` -l forever.log -o log.log -e err.log tokenator.js'</li> 
             (ref: https://github.com/nodejitsu/forever.git)
-        4. - To stop the tokenator issue 'forever stop tokenator.js'
-        5. - check status and error logs by looking at log.log and err.log files respectively.
+        <li>4. - To stop the tokenator issue 'forever stop tokenator.js'</li> 
+        <li>5. - check status and error logs by looking at log.log and err.log files respectively.</li> 
         </ul>
     </p>
 
@@ -83,39 +84,47 @@
     <b>To get a token:</b>
     http://tokenator/timedtoken/get_token?time_validity=ValidityTime&device_id=DeviceIdentification&device_time=TimeOnDevice
 
-    ***If a non-timed token is to be created then the time_validity parameter in the request must be ignored. 
+    <br>
+    <b style="color:red;">***If a non-timed token is to be created then the time_validity parameter in the request must be ignored. 
+    <br>
     It must be noted accordingly that the generated token will not be checked against the time_validity then. *** 
+    </b>
 
+    <br>
     <b>Responses:</b>
     returns a valid token on success and 'ERROR' on failure
 
     <div>
         <b>To check a token:</b>
         http:///tokenator/timedtoken/check_token?token=Token&device_id=DeviceId&device_time=TimeOnDevice
-        Responses for timed tokens:
+        <br>
+        <b>Responses:<b> for timed tokens:
+        <br>
         <ul>
-        * 0 - TOKEN_VALID
-        * 1 - TOKEN_EXPIRED
-        * 2 - RETRANSMIT_OCCURED
-        * 3 - TOKEN_NON_EXISTENT
-        * 4 - UNKNOWN CONDITION
-        * 'ERROR' - BAD 
+        <li>0 - TOKEN_VALID</li> 
+        <li>1 - TOKEN_EXPIRED</li> 
+        <li>2 - RETRANSMIT_OCCURED</li> 
+        <li>3 - TOKEN_NON_EXISTENT</li> 
+        <li>4 - UNKNOWN CONDITION</li> 
+        <li>'ERROR' - BAD </li> 
         </ul>
     </div>
 
     <div>
-        Responses for tokens generated without the time_validity parameter 
+        <br>
+        <b>Responses</b> for tokens generated without the time_validity parameter (aka non-timed)
+        <br>
         <ul>
-        * 10 -  VALID       
-        * 20 -  USED 
-        * 30 -  RETRANSMIT
-        * 40 -  UNKNOWN
+        <li>10 -  VALID    </li>   
+        <li>20 -  USED </li> 
+        <li>30 -  RETRANSMIT</li> 
+        <li>40 -  UNKNOWN</li> 
         </ul>
         </p>
     </div>
 
     <h3>ToDo:</h3>
-    =====
+   
     <p>
         Allow json and xml interfaces for requests and responses.
     </p>
